@@ -1,0 +1,48 @@
+// Phase 1: Core
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      String   // "admin", "manager", "staff"
+  department String
+  documents Document[]
+  approvals WorkflowStep[]
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   // Extracted text
+  category    String
+  tags        String[] // e.g., ["URGENT", "PII-DETECTED"]
+  status      String   // "active", "pending_approval", "rejected"
+  
+  // Phase 2: Enterprise Additions
+  riskLevel   String   // "CRITICAL", "HIGH", "MEDIUM", "LOW"
+  risks       Risk[]
+  workflow    WorkflowAction[]
+  source      String   // "Upload", "SharePoint", "Outlook"
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Phase 2: Intelligence & Compliance
+model Risk {
+  id          String   @id @default(cuid())
+  type        String   // "PII_EXPOSURE", "UNSIGNED"
+  severity    String
+  resolved    Boolean  @default(false)
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id])
+}
+
+// Phase 2: Workflows
+model WorkflowAction {
+  id          String   @id @default(cuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id])
+  step        Int
+  status      String   // "approved", "rejected", "pending"
+  approverId  String
+  comment     String?
+}
